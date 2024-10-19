@@ -96,6 +96,7 @@ mod tests {
             Statement::from(StatementType::VERTEX, StatementDataType::Number3D( 1.0, 0.0,  1.0), 1, 0),
             Statement::from(StatementType::VERTEX, StatementDataType::Number3D( 1.0, 0.0, -1.0), 1, 0),
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(3, 0, 0, 4, 0, 0, 1, 0, 0), 1, 0),
         );
 
         compile_generates_unnamed_objects(String::from(file_name), expected_object_list, statements);
