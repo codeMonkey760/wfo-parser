@@ -23,6 +23,45 @@ pub(crate) enum StatementDataType {
     None(),
 }
 
+impl StatementDataType {
+    pub(crate) fn number_3d_as_tuple(&self) -> Option<(f64, f64, f64)> {
+        if let StatementDataType::Number3D(x, y, z) = self {
+            return Some((*x, *y, *z));
+        }
+        
+        None
+    }
+    
+    pub(crate) fn number_2d_as_tuple(&self) -> Option<(f64, f64)> {
+        if let StatementDataType::Number2D(x, y) = self {
+            return Some((*x, *y));
+        }
+        
+        None
+    }
+    
+    pub(crate) fn number_as_float(&self) -> Option<f64> {
+        if let StatementDataType::Number(x) = self {
+            return Some(*x);
+        }
+        
+        None
+    }
+    
+    pub(crate) fn face_as_index_tuples(&self) -> Option<Vec<(u64, u64, u64)>> {
+        if let StatementDataType::FacePTN(xp, xn, xt, yp, yn, yt, zp, zn, zt) = self {
+            let mut ret = Vec::new();
+            ret.push((*xp, *xn, *xt));
+            ret.push((*yp, *yn, *yt));
+            ret.push((*zp, *zn, *zt));
+            
+            return Some(ret);
+        }
+        
+        None
+    }
+}
+
 impl fmt::Display for StatementType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
