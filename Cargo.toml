@@ -2,3 +2,5 @@
 name = "rust-wfo-parser"
 version = "0.1.0"
 edition = "2021"
+[dependencies]
+ordered-float = "4.4.0"
