@@ -3,6 +3,7 @@ use std::io::{Read};
 use std::str::FromStr;
 use crate::token;
 use token::{Token, TokenType, TokenDataType};
+use crate::nan_safe_float::Float;
 
 #[derive(PartialEq)]
 enum LexerState {
@@ -161,14 +162,17 @@ impl Lexer {
         if new_token.is_none() {
             let parse_float_result = f64::from_str(char_buffer.clone().as_str());
             if !parse_float_result.is_err() {
-                new_token = Some(
-                    Token::from(
-                        TokenType::NUMBER,
-                        TokenDataType::Number(parse_float_result.unwrap()),
-                        self.line_number,
-                        char_pos
-                    )
-                );
+                let parse_float_result = Float::new(parse_float_result.unwrap());
+                if !parse_float_result.is_err() {
+                    new_token = Some(
+                        Token::from(
+                            TokenType::NUMBER,
+                            TokenDataType::Number(parse_float_result.unwrap()),
+                            self.line_number,
+                            char_pos
+                        )
+                    );
+                }
             }
         }
 
@@ -248,6 +252,7 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
+    use crate::f;
     use super::*;
 
     #[test]
@@ -325,7 +330,7 @@ mod tests {
     #[test]
     fn lexer_lexes_number() {
         test_lexer_lexes_single_token(
-            &vec![Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 1, 1)],
+            &vec![Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 1, 1)],
             "1.0"
         );
     }
@@ -442,11 +447,11 @@ mod tests {
         let expected_tokens = vec!(
             Token::from(TokenType::VERTEX, TokenDataType::None(), 1, 1),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 2),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(0.0), 1, 3),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.0)), 1, 3),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 7),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 1, 8),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 1, 8),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 12),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(2.0), 1, 13),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(2.0)), 1, 13),
             Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 17),
         );
 
@@ -469,11 +474,11 @@ mod tests {
 
             Token::from(TokenType::VERTEX, TokenDataType::None(), 2, 1),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 2, 2),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(0.0), 2, 3),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.0)), 2, 3),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 2, 7),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 2, 8),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 2, 8),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 2, 12),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(2.0), 2, 13),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(2.0)), 2, 13),
             Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 2, 17),
 
             Token::from(TokenType::USEMTL, TokenDataType::None(), 3, 1),
@@ -485,7 +490,7 @@ mod tests {
 
             Token::from(TokenType::ILLUM, TokenDataType::None(), 5, 1),
             Token::from(TokenType::SEPARATOR, TokenDataType::None(), 5, 2),
-            Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 5, 3),
+            Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 5, 3),
             Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 5, 4),
         );
 

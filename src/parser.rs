@@ -1,3 +1,4 @@
+use crate::nan_safe_float::Float;
 use crate::token::{Token, TokenType, TokenDataType};
 use crate::statement::{Statement, StatementDataType, StatementType};
 
@@ -6,7 +7,7 @@ struct Parser {
     statement_data: StatementDataType,
     statement_line_number: u64,
     statement_line_position: u64,
-    data_buffer: Vec<f64>,
+    data_buffer: Vec<Float>,
     index_buffer: Vec<u64>,
     parsed_token_count: u64,
     next_expected_token: TokenType,
@@ -302,6 +303,7 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
+    use crate::f;
     use super::*;
 
     #[test]
@@ -357,15 +359,15 @@ mod tests {
             &vec![
                 Token::from(TokenType::VERTEX, TokenDataType::None(), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(2.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(2.0)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(3.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(3.0)), 1, 0),
                 Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 0),
             ],
             &vec![
-                Statement::from(StatementType::VERTEX, StatementDataType::Number3D(1.0, 2.0, 3.0), 1, 0),
+                Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(2.0), f!(3.0)), 1, 0),
             ]
         );
     }
@@ -377,15 +379,15 @@ mod tests {
             &vec![
                 Token::from(TokenType::NORMAL, TokenDataType::None(), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.707), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.707)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.0)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.707), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.707)), 1, 0),
                 Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 0),
             ],
             &vec![
-                Statement::from(StatementType::NORMAL, StatementDataType::Number3D(0.707, 0.0, 0.707), 1, 0),
+                Statement::from(StatementType::NORMAL, StatementDataType::Number3D(f!(0.707), f!(0.0), f!(0.707)), 1, 0),
             ]
         );
     }
@@ -397,13 +399,13 @@ mod tests {
             &vec![
                 Token::from(TokenType::TEXCOORD, TokenDataType::None(), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.75), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.75)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.25), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.25)), 1, 0),
                 Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 0),
             ],
             &vec![
-                Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(0.75, 0.25), 1, 0),
+                Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(0.75), f!(0.25)), 1, 0),
             ]
         );
     }
@@ -451,11 +453,11 @@ mod tests {
             &vec![
                 Token::from(TokenType::ILLUM, TokenDataType::None(), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 1, 0),
                 Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 0),
             ],
             &vec![
-                Statement::from(StatementType::ILLUM, StatementDataType::Number(1.0), 1, 0),
+                Statement::from(StatementType::ILLUM, StatementDataType::Number(f!(1.0)), 1, 0),
             ]
         );
     }
@@ -468,25 +470,25 @@ mod tests {
             &vec![
                 Token::from(TokenType::VERTEX, TokenDataType::None(), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(1.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(1.0)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(2.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(2.0)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(3.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(3.0)), 1, 0),
                 Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 0),
                 
                 Token::from(TokenType::NORMAL, TokenDataType::None(), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.707), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.707)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.0), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.0)), 1, 0),
                 Token::from(TokenType::SEPARATOR, TokenDataType::None(), 1, 0),
-                Token::from(TokenType::NUMBER, TokenDataType::Number(0.707), 1, 0),
+                Token::from(TokenType::NUMBER, TokenDataType::Number(f!(0.707)), 1, 0),
                 Token::from(TokenType::LINEBREAK, TokenDataType::String(String::from("\n")), 1, 0),
             ],
             &vec![
-                Statement::from(StatementType::VERTEX, StatementDataType::Number3D(1.0, 2.0, 3.0), 1, 0),
-                Statement::from(StatementType::NORMAL, StatementDataType::Number3D(0.707, 0.0, 0.707), 1, 0),
+                Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(2.0), f!(3.0)), 1, 0),
+                Statement::from(StatementType::NORMAL, StatementDataType::Number3D(f!(0.707), f!(0.0), f!(0.707)), 1, 0),
             ]
         );
     }

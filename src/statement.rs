@@ -1,4 +1,6 @@
 use std::fmt;
+use crate::nan_safe_float::Float;
+use crate::vertex::VertexDataIndex;
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum StatementType {
@@ -16,15 +18,15 @@ pub enum StatementType {
 #[derive(PartialEq, Debug, Clone)]
 pub(crate) enum StatementDataType {
     String(String),
-    Number3D(f64, f64, f64),
-    Number2D(f64, f64),
-    Number(f64),
+    Number3D(Float, Float, Float),
+    Number2D(Float, Float),
+    Number(Float),
     FacePTN(u64, u64, u64, u64, u64, u64, u64, u64, u64),
     None(),
 }
 
 impl StatementDataType {
-    pub(crate) fn number_3d_as_tuple(&self) -> Option<(f64, f64, f64)> {
+    pub(crate) fn number_3d_as_tuple(&self) -> Option<(Float, Float, Float)> {
         if let StatementDataType::Number3D(x, y, z) = self {
             return Some((*x, *y, *z));
         }
@@ -32,7 +34,7 @@ impl StatementDataType {
         None
     }
     
-    pub(crate) fn number_2d_as_tuple(&self) -> Option<(f64, f64)> {
+    pub(crate) fn number_2d_as_tuple(&self) -> Option<(Float, Float)> {
         if let StatementDataType::Number2D(x, y) = self {
             return Some((*x, *y));
         }
@@ -40,7 +42,7 @@ impl StatementDataType {
         None
     }
     
-    pub(crate) fn number_as_float(&self) -> Option<f64> {
+    pub(crate) fn number_as_float(&self) -> Option<Float> {
         if let StatementDataType::Number(x) = self {
             return Some(*x);
         }
@@ -48,12 +50,12 @@ impl StatementDataType {
         None
     }
     
-    pub(crate) fn face_as_index_tuples(&self) -> Option<Vec<(u64, u64, u64)>> {
+    pub(crate) fn face_as_index_tuples(&self) -> Option<Vec<VertexDataIndex>> {
         if let StatementDataType::FacePTN(xp, xn, xt, yp, yn, yt, zp, zn, zt) = self {
             let mut ret = Vec::new();
-            ret.push((*xp, *xn, *xt));
-            ret.push((*yp, *yn, *yt));
-            ret.push((*zp, *zn, *zt));
+            ret.push(VertexDataIndex::from_indices(&(*xp, *xn, *xt)));
+            ret.push(VertexDataIndex::from_indices(&(*yp, *yn, *yt)));
+            ret.push(VertexDataIndex::from_indices(&(*zp, *zn, *zt)));
             
             return Some(ret);
         }

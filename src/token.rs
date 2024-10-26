@@ -1,5 +1,6 @@
 use std::fmt;
 use std::fmt::Formatter;
+use crate::nan_safe_float::Float;
 
 #[derive(Eq, PartialEq, Debug, Ord, PartialOrd, Clone, Copy)]
 pub enum TokenType {
@@ -60,7 +61,7 @@ impl TokenType {
 #[derive(PartialEq, Debug, Clone)]
 pub(crate) enum TokenDataType {
     String(String),
-    Number(f64),
+    Number(Float),
     VertexPTN(u64, u64, u64),
     None()
 }
