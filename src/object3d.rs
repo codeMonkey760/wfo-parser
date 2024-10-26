@@ -1,4 +1,4 @@
-use crate::vertex_format::{VertexFormat};
+use crate::vertex::{VertexFormat};
 
 pub(crate) struct Object3d {
     pub name: String,
