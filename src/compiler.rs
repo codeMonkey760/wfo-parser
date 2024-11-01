@@ -1,6 +1,7 @@
 use crate::statement::{Statement, StatementType, StatementDataType};
 use crate::object3d::{Object3d};
-use crate::vertex_format::VertexFormat;
+use crate::vertex::{VertexData, VertexFormat};
+use crate::nan_safe_float::Float;
 
 struct Compiler {
     default_name: String
@@ -10,50 +11,43 @@ impl Compiler {
     fn compile(&self, statements: &Vec<Statement>) -> Result<Vec<Object3d>, String> {
         let mut results: Vec<Object3d> = Vec::new();
         let mut cur_obj: Object3d = Object3d::from(self.default_name.clone());
-        let mut global_vb: Vec<(f64, f64, f64)> = Vec::new();
+        let mut pos_buffer: Vec<(Float, Float, Float)> = Vec::new();
+        let mut normal_buffer: Vec<(Float, Float, Float)> = Vec::new();
+        let mut tex_coord_buffer: Vec<(Float, Float)> = Vec::new();
+        let mut face_count = 0;
         
         for statement in statements {
             if statement.statement_type == StatementType::VERTEX {
-                global_vb.push(statement.data.number_3d_as_tuple().expect("Expected conversion"));
+                pos_buffer.push(statement.data.number_3d_as_tuple().expect("Expected conversion"));
             } else if statement.statement_type == StatementType::FACE {
-                let index_tuples = statement.data.face_as_index_tuples().expect("Expected conversion");
-                for i in 0..3 {
-                    let indices = index_tuples[i];
-                    let format = VertexFormat::from_indices(&indices);
-                    let vertex = Self::construct_vertex(&indices, &global_vb);
+                let face_indices = statement.data.face_as_index_tuples().expect("Expected conversion");
+                for vertex_indices in face_indices {
+                    let vertex = VertexData::compile(vertex_indices, &pos_buffer, &normal_buffer, &tex_coord_buffer).expect("Expected vertex compilation");
                     
                     if cur_obj.format != VertexFormat::Unknown {
-                        if cur_obj.format != format {
-                            return Err(String::from("Vertex format changes during polygon construction"));
+                        if cur_obj.format != vertex.format {
+                            return Err(String::from("Vertex format changes during object compilation"));
                         }
                     } else {
-                        cur_obj.format = format;
+                        cur_obj.format = vertex.format;
                     }
                     
+                    cur_obj.vertex_buffer.append(&mut vertex.as_vector());
+                    cur_obj.index_buffer.push(face_count);
+                    face_count += 1;
                 }
             }
         }
+        
+        results.push(cur_obj);
 
         Ok(results)
-    }
-    
-    fn construct_vertex(
-        (pos, normal, texcoord): &(u64, u64, u64), 
-        pos_buffer: &Vec<(f64, f64, f64)>
-    ) -> Vec<f64> {
-        let mut result = Vec::new();
-        
-        let pos = pos_buffer[*pos as usize - 1];
-        result.push(pos.0);
-        result.push(pos.1);
-        result.push(pos.2);
-        
-        result
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::f;
     use super::*;
     
     #[test]
@@ -69,9 +63,9 @@ mod tests {
         );
         
         let statements = vec!(
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(-1.0, 0.0, -1.0), 1, 0),
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D( 0.0, 0.0,  1.0), 1, 0),
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D( 1.0, 0.0,  1.0), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0), f!(-1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(0.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0),  f!(1.0)), 1, 0),
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
         );
 
@@ -91,10 +85,10 @@ mod tests {
         );
         
         let statements = vec!(
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(-1.0, 0.0, -1.0), 1, 0),
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(-1.0, 0.0,  1.0), 1, 0),
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D( 1.0, 0.0,  1.0), 1, 0),
-            Statement::from(StatementType::VERTEX, StatementDataType::Number3D( 1.0, 0.0, -1.0), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0), f!(-1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0), f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0), f!(-1.0)), 1, 0),
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(3, 0, 0, 4, 0, 0, 1, 0, 0), 1, 0),
         );
