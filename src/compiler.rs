@@ -12,9 +12,8 @@ impl Compiler {
         let mut results: Vec<Object3d> = Vec::new();
         let mut cur_obj: Object3d = Object3d::from(self.default_name.clone());
         let mut pos_buffer: Vec<(Float, Float, Float)> = Vec::new();
-        let mut normal_buffer: Vec<(Float, Float, Float)> = Vec::new();
-        let mut tex_coord_buffer: Vec<(Float, Float)> = Vec::new();
-        let mut face_count = 0;
+        let normal_buffer: Vec<(Float, Float, Float)> = Vec::new();
+        let tex_coord_buffer: Vec<(Float, Float)> = Vec::new();
         
         for statement in statements {
             if statement.statement_type == StatementType::VERTEX {
@@ -24,17 +23,10 @@ impl Compiler {
                 for vertex_indices in face_indices {
                     let vertex = VertexData::compile(vertex_indices, &pos_buffer, &normal_buffer, &tex_coord_buffer).expect("Expected vertex compilation");
                     
-                    if cur_obj.format != VertexFormat::Unknown {
-                        if cur_obj.format != vertex.format {
-                            return Err(String::from("Vertex format changes during object compilation"));
-                        }
-                    } else {
-                        cur_obj.format = vertex.format;
+                    let add_vertex_result = cur_obj.add_vertex(vertex);
+                    if add_vertex_result.is_err() {
+                        return Err(add_vertex_result.err().unwrap());
                     }
-                    
-                    cur_obj.vertex_buffer.append(&mut vertex.as_vector());
-                    cur_obj.index_buffer.push(face_count);
-                    face_count += 1;
                 }
             }
         }
@@ -57,7 +49,11 @@ mod tests {
             Object3d {
                 name: String::from(file_name),
                 format: VertexFormat::VertexP,
-                vertex_buffer: vec!(-1.0, 0.0, -1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0),
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(0.0), f!(-1.0)), 
+                    VertexData::vertex_p_from_floats(f!(0.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(0.0), f!(1.0)),
+                ),
                 index_buffer: vec!(0, 1, 2),
             }
         );
@@ -79,7 +75,12 @@ mod tests {
             Object3d {
                 name: String::from(file_name),
                 format: VertexFormat::VertexP,
-                vertex_buffer: vec!(-1.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, -1.0),
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(0.0), f!(-1.0)),
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(0.0), f!(-1.0)),
+                ),
                 index_buffer: vec!(0, 1, 2, 2, 3, 0),
             }
         );

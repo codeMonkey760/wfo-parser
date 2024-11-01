@@ -48,6 +48,15 @@ pub(crate) struct VertexData {
 }
 
 impl VertexData {
+    pub(crate) fn vertex_p_from_floats(x: Float, y: Float, z:Float) -> Self {
+        VertexData {
+            format: VertexFormat::VertexP,
+            pos: (x, y, z),
+            normal: None,
+            tex_coord: None,
+        }
+    }
+    
     pub(crate) fn as_vector(&self) -> Vec<f64> {
         let mut result = Vec::new();
         
