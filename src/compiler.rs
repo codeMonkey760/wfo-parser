@@ -55,7 +55,12 @@ impl Compiler {
             _ => {return Err(String::from("Object statement did not have string name"))},
         };
         
-        self.cur_obj.get_or_insert(Object3d::from(name.clone()));
+        let current_obj = self.cur_obj.take();
+        if let Some(x) = current_obj {
+            results.push(x);
+        }
+        
+        self.cur_obj = Some(Object3d::from(name.clone()));
         
         Ok(())
     }
@@ -174,6 +179,47 @@ mod tests {
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
         );
 
+        compile_generates_objects(String::from("test.obj"), expected_object_list, statements);
+    }
+    
+    #[test]
+    fn compile_generates_multiple_named_objects_with_vertex_p_polygons() {
+        let object_1_name = "object1";
+        let object_2_name = "object2";
+        
+        let expected_object_list = vec!(
+            Object3d {
+                name: String::from(object_1_name),
+                format: VertexFormat::VertexP,
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(0.0), f!(-1.0)), 
+                    VertexData::vertex_p_from_floats(f!(0.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(0.0), f!(1.0)),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            },
+            Object3d {
+                name: String::from(object_2_name),
+                format: VertexFormat::VertexP,
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(0.0), f!(1.0)), 
+                    VertexData::vertex_p_from_floats(f!(0.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(0.0), f!(-1.0)),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            },
+        );
+        
+        let statements = vec!(
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0), f!(-1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(0.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::OBJECT, StatementDataType::String(String::from(object_1_name)), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
+            Statement::from(StatementType::OBJECT, StatementDataType::String(String::from(object_2_name)), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(3, 0, 0, 2, 0, 0, 1, 0, 0), 1, 0),
+        );
+        
         compile_generates_objects(String::from("test.obj"), expected_object_list, statements);
     }
     
