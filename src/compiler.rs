@@ -4,36 +4,89 @@ use crate::vertex::{VertexData, VertexFormat};
 use crate::nan_safe_float::Float;
 
 struct Compiler {
-    default_name: String
+    default_name: String,
+    cur_obj: Option<Object3d>,
+    position_buffer: Vec<(Float, Float, Float)>,
+    normal_buffer: Vec<(Float, Float, Float)>,
+    tex_coord_buffer: Vec<(Float, Float)>,
 }
 
 impl Compiler {
-    fn compile(&self, statements: &Vec<Statement>) -> Result<Vec<Object3d>, String> {
+    fn from_default_name(new_default_name: &String) -> Self {
+        Compiler {
+            default_name: new_default_name.clone(),
+            cur_obj: None,
+            position_buffer: Vec::new(),
+            normal_buffer: Vec::new(),
+            tex_coord_buffer: Vec::new(),
+        }
+    }
+    
+    fn compile(&mut self, statements: &Vec<Statement>) -> Result<Vec<Object3d>, String> {
         let mut results: Vec<Object3d> = Vec::new();
-        let mut cur_obj: Object3d = Object3d::from(self.default_name.clone());
-        let mut pos_buffer: Vec<(Float, Float, Float)> = Vec::new();
-        let normal_buffer: Vec<(Float, Float, Float)> = Vec::new();
-        let tex_coord_buffer: Vec<(Float, Float)> = Vec::new();
         
         for statement in statements {
-            if statement.statement_type == StatementType::VERTEX {
-                pos_buffer.push(statement.data.number_3d_as_tuple().expect("Expected conversion"));
-            } else if statement.statement_type == StatementType::FACE {
-                let face_indices = statement.data.face_as_index_tuples().expect("Expected conversion");
-                for vertex_indices in face_indices {
-                    let vertex = VertexData::compile(vertex_indices, &pos_buffer, &normal_buffer, &tex_coord_buffer).expect("Expected vertex compilation");
-                    
-                    let add_vertex_result = cur_obj.add_vertex(vertex);
-                    if add_vertex_result.is_err() {
-                        return Err(add_vertex_result.err().unwrap());
-                    }
-                }
+            match statement.statement_type {
+                StatementType::COMMENT => {}
+                StatementType::MTLLIB => {}
+                StatementType::OBJECT => {self.handle_object_statement(statement, &mut results)?}
+                StatementType::VERTEX => {self.handle_vertex_statement(statement)?}
+                StatementType::NORMAL => {}
+                StatementType::TEXCOORD => {}
+                StatementType::USEMTL => {}
+                StatementType::FACE => {self.handle_face_statement(statement)?}
+                StatementType::ILLUM => {}
+            }
+        }
+        self.clean_up(&mut results)?;
+        
+        Ok(results)
+    }
+    
+    fn handle_vertex_statement(&mut self, statement: &Statement) -> Result<(), String> {
+        self.position_buffer.push(statement.data.number_3d_as_tuple().expect("Expected conversion"));
+        
+        Ok(())
+    }
+    
+    fn handle_object_statement(&mut self, statement: &Statement, results: &mut Vec<Object3d>) -> Result<(), String> {
+        let name = match &statement.data {
+            StatementDataType::String(x) => x,
+            _ => {return Err(String::from("Object statement did not have string name"))},
+        };
+        
+        self.cur_obj.get_or_insert(Object3d::from(name.clone()));
+        
+        Ok(())
+    }
+    
+    fn handle_face_statement(&mut self, statement: &Statement) -> Result<(), String> {
+        let current_obj = self.cur_obj.get_or_insert(Object3d::from(self.default_name.clone()));
+        let face_indices = statement.data.face_as_index_tuples().expect("Expected conversion");
+        let pos_buffer = &self.position_buffer;
+        let normal_buffer = &self.normal_buffer;
+        let tex_coord_buffer = &self.tex_coord_buffer;
+        
+        for vertex_indices in face_indices {
+            let vertex = VertexData::compile(vertex_indices, pos_buffer, &normal_buffer, &tex_coord_buffer).expect("Expected vertex compilation");
+            
+            let add_vertex_result = current_obj.add_vertex(vertex);
+            if add_vertex_result.is_err() {
+                return Err(add_vertex_result.err().unwrap());
             }
         }
         
-        results.push(cur_obj);
-
-        Ok(results)
+        Ok(())
+    }
+    
+    fn clean_up(&mut self, results: &mut Vec<Object3d>) -> Result<(), String> {
+        let current_obj = self.cur_obj.take();
+        
+        if let Some(x) = current_obj {
+            results.push(x);
+        }
+        
+        Ok(())
     }
 }
 
@@ -97,14 +150,40 @@ mod tests {
         compile_generates_unnamed_objects(String::from(file_name), expected_object_list, statements);
     }
     
+    #[test]
+    fn compile_generates_single_named_object_with_vertex_p_polygons() {
+        let object_name = String::from("Object1");
+        let expected_object_list = vec!(
+            Object3d {
+                name: object_name.clone(),
+                format: VertexFormat::VertexP,
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(0.0), f!(-1.0)), 
+                    VertexData::vertex_p_from_floats(f!(0.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(0.0), f!(1.0)),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            }
+        );
+        
+        let statements = vec!(
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0), f!(-1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(0.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::OBJECT, StatementDataType::String(object_name), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
+        );
+
+        compile_generates_unnamed_objects(String::from("test.obj"), expected_object_list, statements);
+    }
+    
     fn compile_generates_unnamed_objects(
         file_name: String, 
         expected_object_list: Vec<Object3d>, 
         statements: Vec<Statement>
     ) {
-        let c = Compiler {
-            default_name: String::from(file_name)
-        };
+        let mut c = Compiler::from_default_name(&file_name);
+        
         let actual_object_list = c.compile(&statements);
 
         assert_eq!(
