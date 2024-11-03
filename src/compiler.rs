@@ -118,7 +118,7 @@ mod tests {
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
         );
 
-        compile_generates_unnamed_objects(String::from(file_name), expected_object_list, statements);
+        compile_generates_objects(String::from(file_name), expected_object_list, statements);
     }
     
     #[test]
@@ -147,7 +147,7 @@ mod tests {
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(3, 0, 0, 4, 0, 0, 1, 0, 0), 1, 0),
         );
 
-        compile_generates_unnamed_objects(String::from(file_name), expected_object_list, statements);
+        compile_generates_objects(String::from(file_name), expected_object_list, statements);
     }
     
     #[test]
@@ -174,10 +174,10 @@ mod tests {
             Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
         );
 
-        compile_generates_unnamed_objects(String::from("test.obj"), expected_object_list, statements);
+        compile_generates_objects(String::from("test.obj"), expected_object_list, statements);
     }
     
-    fn compile_generates_unnamed_objects(
+    fn compile_generates_objects(
         file_name: String, 
         expected_object_list: Vec<Object3d>, 
         statements: Vec<Statement>
