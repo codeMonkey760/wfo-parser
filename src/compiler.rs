@@ -27,15 +27,15 @@ impl Compiler {
         
         for statement in statements {
             match statement.statement_type {
-                StatementType::COMMENT => {}
-                StatementType::MTLLIB => {}
+                StatementType::COMMENT => {/*comments don't have side effects ... so ignore?*/}
+                StatementType::MTLLIB => {/*ignore these*/}
                 StatementType::OBJECT => {self.handle_object_statement(statement, &mut results)?}
                 StatementType::VERTEX => {self.handle_vertex_statement(statement)?}
                 StatementType::NORMAL => {self.handle_normal_statement(statement)?}
                 StatementType::TEXCOORD => {self.handle_tex_coord_statement(statement)?}
-                StatementType::USEMTL => {}
+                StatementType::USEMTL => {/*TODO: implement material support*/}
                 StatementType::FACE => {self.handle_face_statement(statement)?}
-                StatementType::ILLUM => {}
+                StatementType::ILLUM => {/*ignore these*/}
             }
         }
         self.clean_up(&mut results)?;
