@@ -12,11 +12,11 @@ pub(crate) enum VertexFormat {
 impl VertexFormat {
     pub(crate) fn from_indices(indices: &(u64, u64, u64)) -> Self {
         match indices {
-            (0, tc, n) => { panic!("Vertex format must have position index"); },
-            (p, 0, 0) => VertexFormat::VertexP,
-            (p, tc, 0) => VertexFormat::VertexPT,
-            (p, 0, n) => VertexFormat::VertexPN,
-            (ps, tc, n) => VertexFormat::VertexPNT,
+            (0, _tc, _n) => { panic!("Vertex format must have position index"); },
+            (_p, 0, 0) => VertexFormat::VertexP,
+            (_p, _tc, 0) => VertexFormat::VertexPT,
+            (_p, 0, _n) => VertexFormat::VertexPN,
+            (_ps, _tc, _n) => VertexFormat::VertexPNT,
         }
     }
 }
