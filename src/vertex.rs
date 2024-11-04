@@ -69,6 +69,18 @@ impl VertexData {
         }
     }
     
+    pub(crate) fn vertex_pt_from_floats(
+        px: Float, py: Float, pz: Float,
+        tx: Float, ty: Float
+    ) -> Self {
+        VertexData {
+            format: VertexFormat::VertexPT,
+            pos: (px, py, pz),
+            normal: None,
+            tex_coord: Some((tx, ty))
+        }
+    }
+    
     pub(crate) fn vertex_pnt_from_floats(
         px: Float, py: Float, pz: Float,
         nx: Float, ny: Float, nz: Float,
