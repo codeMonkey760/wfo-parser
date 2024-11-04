@@ -42,14 +42,6 @@ impl StatementDataType {
         None
     }
     
-    pub(crate) fn number_as_float(&self) -> Option<Float> {
-        if let StatementDataType::Number(x) = self {
-            return Some(*x);
-        }
-        
-        None
-    }
-    
     pub(crate) fn face_as_index_tuples(&self) -> Option<Vec<VertexDataIndex>> {
         if let StatementDataType::FacePTN(xp, xn, xt, yp, yn, yt, zp, zn, zt) = self {
             let mut ret = Vec::new();

@@ -94,29 +94,6 @@ impl VertexData {
         }
     }
     
-    pub(crate) fn as_vector(&self) -> Vec<f64> {
-        let mut result = Vec::new();
-        
-        result.push(self.pos.0.into_inner());
-        result.push(self.pos.1.into_inner());
-        result.push(self.pos.2.into_inner());
-        
-        if self.normal.is_some() {
-            let n = self.normal.unwrap();
-            result.push(n.0.into_inner());
-            result.push(n.1.into_inner());
-            result.push(n.2.into_inner());
-        }
-        
-        if self.tex_coord.is_some() {
-            let tc = self.tex_coord.unwrap();
-            result.push(tc.0.into_inner());
-            result.push(tc.1.into_inner());
-        }
-        
-        result
-    }
-    
     pub(crate) fn compile(
         index: VertexDataIndex, 
         position_buffer: &Vec<(Float, Float, Float)>,
