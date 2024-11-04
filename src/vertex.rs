@@ -44,7 +44,7 @@ pub(crate) struct VertexData {
     pub(crate) format: VertexFormat,
     pos: (Float, Float, Float),
     normal: Option<(Float, Float, Float)>,
-    tex_coord: Option<(Float, Float, Float)>,
+    tex_coord: Option<(Float, Float)>,
 }
 
 impl VertexData {
@@ -54,6 +54,19 @@ impl VertexData {
             pos: (x, y, z),
             normal: None,
             tex_coord: None,
+        }
+    }
+    
+    pub(crate) fn vertex_pnt_from_floats(
+        px: Float, py: Float, pz: Float,
+        nx: Float, ny: Float, nz: Float,
+        tx: Float, ty: Float
+    )-> Self {
+        VertexData {
+            format: VertexFormat::VertexPNT,
+            pos: (px, py, pz),
+            normal: Some((nx, ny, nz)),
+            tex_coord: Some((tx, ty))
         }
     }
     
@@ -75,7 +88,6 @@ impl VertexData {
             let tc = self.tex_coord.unwrap();
             result.push(tc.0.into_inner());
             result.push(tc.1.into_inner());
-            result.push(tc.2.into_inner());
         }
         
         result
