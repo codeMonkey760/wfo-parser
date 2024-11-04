@@ -142,7 +142,24 @@ impl VertexData {
         position_buffer: &Vec<(Float, Float, Float)>,
         normal_buffer: &Vec<(Float, Float, Float)>
     ) -> Result<Self, String> {
-        Err(String::from("NOT IMPLEMENTED"))
+        let position = position_buffer.get(index.pos as usize - 1);
+        if let None = position {
+            return Err(String::from("Bad position index"));
+        }
+        
+        let normal = normal_buffer.get(index.normal as usize - 1);
+        if let None = normal {
+            return Err(String::from("Bad normal index"));
+        }
+        
+        Ok(
+            VertexData {
+                format: VertexFormat::VertexPN,
+                pos: *position.unwrap(),
+                normal: normal.copied(),
+                tex_coord: None
+            }
+        )
     }
     
     fn compile_vertex_pt(
