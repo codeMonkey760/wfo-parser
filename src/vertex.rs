@@ -179,7 +179,24 @@ impl VertexData {
         position_buffer: &Vec<(Float, Float, Float)>,
         tex_coord_buffer: &Vec<(Float, Float)>
     ) -> Result<Self, String> {
-        Err(String::from("NOT IMPLEMENTED"))
+        let position = position_buffer.get(index.pos as usize - 1);
+        if let None = position {
+            return Err(String::from("Bad position index"));
+        }
+        
+        let tex_coord = tex_coord_buffer.get(index.tex_coord as usize - 1);
+        if let None = tex_coord {
+            return Err(String::from("Bad texture coordinate index"));
+        }
+        
+        Ok(
+            VertexData {
+                format: VertexFormat::VertexPT,
+                pos: *position.unwrap(),
+                normal: None,
+                tex_coord: tex_coord.copied()
+            }
+        )
     }
     
     fn compile_vertex_pnt(
