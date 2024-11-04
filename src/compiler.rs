@@ -263,6 +263,35 @@ mod tests {
     }
     
     #[test]
+    fn compile_generates_single_object_with_pt_polygons() {
+        let file_name = "test.obj";
+        let expected_object_list = vec!(
+            Object3d {
+                name: String::from(file_name),
+                format: VertexFormat::VertexPT,
+                vertex_buffer: vec!(
+                    VertexData::vertex_pt_from_floats(f!(-1.0), f!(0.0), f!(-1.0), f!(0.0), f!(0.0)),
+                    VertexData::vertex_pt_from_floats(f!(0.0), f!(0.0), f!(1.0), f!(0.0), f!(1.0)),
+                    VertexData::vertex_pt_from_floats(f!(1.0), f!(0.0), f!(1.0), f!(1.0), f!(0.0)),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            }
+        );
+        
+        let statements = vec!(
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0), f!(-1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(0.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(0.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(0.0), f!(1.0)), 1, 0),
+            Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(1.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 1, 0, 2, 2, 0, 3, 3, 0), 1, 0),
+        );
+
+        compile_generates_objects(String::from(file_name), expected_object_list, statements);
+    }
+    
+    #[test]
     fn compile_generates_single_object_with_vertex_pnt_polygons() {
         let file_name = "test.obj";
         let expected_object_list = vec!(
