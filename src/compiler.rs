@@ -31,8 +31,8 @@ impl Compiler {
                 StatementType::MTLLIB => {}
                 StatementType::OBJECT => {self.handle_object_statement(statement, &mut results)?}
                 StatementType::VERTEX => {self.handle_vertex_statement(statement)?}
-                StatementType::NORMAL => {}
-                StatementType::TEXCOORD => {}
+                StatementType::NORMAL => {self.handle_normal_statement(statement)?}
+                StatementType::TEXCOORD => {self.handle_tex_coord_statement(statement)?}
                 StatementType::USEMTL => {}
                 StatementType::FACE => {self.handle_face_statement(statement)?}
                 StatementType::ILLUM => {}
@@ -45,6 +45,18 @@ impl Compiler {
     
     fn handle_vertex_statement(&mut self, statement: &Statement) -> Result<(), String> {
         self.position_buffer.push(statement.data.number_3d_as_tuple().expect("Expected conversion"));
+        
+        Ok(())
+    }
+    
+    fn handle_normal_statement(&mut self, statement: &Statement) -> Result<(), String> {
+        self.normal_buffer.push(statement.data.number_3d_as_tuple().expect("Expected conversion"));
+        
+        Ok(())
+    }
+    
+    fn handle_tex_coord_statement(&mut self, statement: &Statement) -> Result<(), String> {
+        self.tex_coord_buffer.push(statement.data.number_2d_as_tuple().expect("Expected conversion"));
         
         Ok(())
     }
@@ -221,6 +233,42 @@ mod tests {
         );
         
         compile_generates_objects(String::from("test.obj"), expected_object_list, statements);
+    }
+    
+    #[test]
+    fn compile_generates_single_object_with_vertex_pnt_polygons() {
+        let file_name = "test.obj";
+        let expected_object_list = vec!(
+            Object3d {
+                name: String::from(file_name),
+                format: VertexFormat::VertexPNT,
+                vertex_buffer: vec!(
+                    VertexData::vertex_pnt_from_floats(
+                        f!(-1.0), f!(0.0), f!(-1.0), f!(0.0), f!(0.0), f!(1.0), f!(0.0), f!(0.0)
+                    ),
+                    VertexData::vertex_pnt_from_floats(
+                        f!(0.0), f!(0.0), f!(1.0), f!(0.0), f!(0.0), f!(1.0), f!(0.0), f!(1.0)
+                    ),
+                    VertexData::vertex_pnt_from_floats(
+                        f!(1.0), f!(0.0), f!(1.0), f!(0.0), f!(0.0), f!(1.0), f!(1.0), f!(0.0)
+                    ),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            }
+        );
+        
+        let statements = vec!(
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(0.0), f!(-1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(0.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(0.0),  f!(1.0)), 1, 0),
+            Statement::from(StatementType::NORMAL, StatementDataType::Number3D(f!(0.0), f!(0.0), f!(1.0)), 1, 0),
+            Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(0.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(0.0), f!(1.0)), 1, 0),
+            Statement::from(StatementType::TEXCOORD, StatementDataType::Number2D(f!(1.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 1, 1, 2, 2, 1, 3, 3, 1), 1, 0),
+        );
+
+        compile_generates_objects(String::from(file_name), expected_object_list, statements);
     }
     
     fn compile_generates_objects(
