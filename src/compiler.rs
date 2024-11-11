@@ -327,6 +327,48 @@ mod tests {
         compile_generates_objects(String::from(file_name), expected_object_list, statements);
     }
     
+    #[test]
+    fn compiles_generates_multiple_named_objects() {
+        let file_name = String::from("test.obj");
+        let object_1_name = String::from("Object1");
+        let object_2_name = String::from("Object2");
+        
+        let expected_object_list = vec!(
+            Object3d {
+                name: object_1_name.clone(),
+                format: VertexFormat::VertexP,
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(-1.0), f!(0.0)),
+                    VertexData::vertex_p_from_floats(f!(0.0), f!(1.0), f!(0.0)),
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(-1.0), f!(0.0)),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            },
+            Object3d {
+                name: object_2_name.clone(),
+                format: VertexFormat::VertexP,
+                vertex_buffer: vec!(
+                    VertexData::vertex_p_from_floats(f!(1.0), f!(-1.0), f!(0.0)),
+                    VertexData::vertex_p_from_floats(f!(0.0), f!(1.0), f!(0.0)),
+                    VertexData::vertex_p_from_floats(f!(-1.0), f!(-1.0), f!(0.0)),
+                ),
+                index_buffer: vec!(0, 1, 2),
+            }
+        );
+        
+        let statements = vec!(
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(-1.0), f!(-1.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(0.0), f!(1.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::VERTEX, StatementDataType::Number3D(f!(1.0), f!(-1.0), f!(0.0)), 1, 0),
+            Statement::from(StatementType::OBJECT, StatementDataType::String(object_1_name.clone()), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(1, 0, 0, 2, 0, 0, 3, 0, 0), 1, 0),
+            Statement::from(StatementType::OBJECT, StatementDataType::String(object_2_name.clone()), 1, 0),
+            Statement::from(StatementType::FACE, StatementDataType::FacePTN(3, 0, 0, 2, 0, 0, 1, 0, 0), 1, 0),
+        );
+
+        compile_generates_objects(String::from(file_name), expected_object_list, statements);
+    }
+    
     fn compile_generates_objects(
         file_name: String, 
         expected_object_list: Vec<Object3d>, 
